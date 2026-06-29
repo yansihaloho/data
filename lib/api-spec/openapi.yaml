@@ -3,13 +3,19 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Toto Macau Live API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: toto
+    description: Toto Macau result operations
+  - name: predictions
+    description: AI prediction operations
+  - name: taruhan
+    description: Nomor taruhan operations
 paths:
   /healthz:
     get:
@@ -24,6 +30,140 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /toto/latest:
+    get:
+      operationId: getTotoLatest
+      tags: [toto]
+      summary: Get latest Toto Macau results (today)
+      responses:
+        "200":
+          description: Latest result day
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TotoDay"
+        "404":
+          description: No data yet
+
+  /toto/months:
+    get:
+      operationId: getTotoMonths
+      tags: [toto]
+      summary: Get all results grouped by month
+      responses:
+        "200":
+          description: List of month groups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TotoMonthGroup"
+
+  /toto/schedule:
+    get:
+      operationId: getTotoSchedule
+      tags: [toto]
+      summary: Get daily draw schedule
+      responses:
+        "200":
+          description: Draw schedule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TotoSchedule"
+
+  /toto/refresh:
+    post:
+      operationId: refreshTotoData
+      tags: [toto]
+      summary: Refresh Toto Macau data from source
+      responses:
+        "200":
+          description: Refresh result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RefreshResult"
+
+  /toto/nomor-taruhan:
+    get:
+      operationId: getNomorTaruhan
+      tags: [taruhan]
+      summary: Get saved nomor taruhan
+      responses:
+        "200":
+          description: Nomor taruhan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NomorTaruhan"
+    put:
+      operationId: setNomorTaruhan
+      tags: [taruhan]
+      summary: Save nomor taruhan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NomorTaruhanInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NomorTaruhan"
+
+  /predictions:
+    get:
+      operationId: getPredictions
+      tags: [predictions]
+      summary: Get all saved predictions
+      responses:
+        "200":
+          description: List of predictions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Prediction"
+    post:
+      operationId: savePrediction
+      tags: [predictions]
+      summary: Save an AI prediction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PredictionInput"
+      responses:
+        "201":
+          description: Saved prediction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Prediction"
+
+  /predictions/{id}:
+    delete:
+      operationId: deletePrediction
+      tags: [predictions]
+      summary: Delete a prediction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +174,176 @@ components:
       required:
         - status
 
+    TotoDay:
+      type: object
+      properties:
+        drawDate:
+          type: string
+        dayName:
+          type: string
+        draw0001:
+          type: ["string", "null"]
+        draw1300:
+          type: ["string", "null"]
+        draw1600:
+          type: ["string", "null"]
+        draw1900:
+          type: ["string", "null"]
+        draw2200:
+          type: ["string", "null"]
+        draw2300:
+          type: ["string", "null"]
+      required:
+        - drawDate
+        - dayName
+
+    TotoMonthGroup:
+      type: object
+      properties:
+        year:
+          type: integer
+        month:
+          type: integer
+        monthName:
+          type: string
+        totalDays:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/TotoDay"
+      required:
+        - year
+        - month
+        - monthName
+        - totalDays
+        - results
+
+    TotoSchedule:
+      type: object
+      properties:
+        drawTimes:
+          type: array
+          items:
+            type: string
+      required:
+        - drawTimes
+
+    RefreshResult:
+      type: object
+      properties:
+        message:
+          type: string
+        newRecords:
+          type: integer
+      required:
+        - message
+        - newRecords
+
+    NomorTaruhan:
+      type: object
+      properties:
+        numbers:
+          type: array
+          items:
+            type: string
+      required:
+        - numbers
+
+    NomorTaruhanInput:
+      type: object
+      properties:
+        numbers:
+          type: array
+          items:
+            type: string
+      required:
+        - numbers
+
+    Prediction:
+      type: object
+      properties:
+        id:
+          type: integer
+        session:
+          type: string
+        forDate:
+          type: string
+        predicted4d:
+          type: string
+        confidence:
+          type: number
+        signal:
+          type: string
+        asP:
+          type: number
+        kopP:
+          type: number
+        kepalaP:
+          type: number
+        ekorP:
+          type: number
+        bbfs:
+          type: string
+        createdAt:
+          type: string
+        actual4d:
+          type: ["string", "null"]
+        asCorrect:
+          type: ["boolean", "null"]
+        kopCorrect:
+          type: ["boolean", "null"]
+        kepalaCorrect:
+          type: ["boolean", "null"]
+        ekorCorrect:
+          type: ["boolean", "null"]
+        digitScore:
+          type: ["number", "null"]
+      required:
+        - id
+        - session
+        - forDate
+        - predicted4d
+        - confidence
+        - signal
+        - asP
+        - kopP
+        - kepalaP
+        - ekorP
+        - bbfs
+        - createdAt
+
+    PredictionInput:
+      type: object
+      properties:
+        session:
+          type: string
+        forDate:
+          type: string
+        predicted4d:
+          type: string
+        confidence:
+          type: number
+        signal:
+          type: string
+        asP:
+          type: number
+        kopP:
+          type: number
+        kepalaP:
+          type: number
+        ekorP:
+          type: number
+        bbfs:
+          type: string
+      required:
+        - session
+        - forDate
+        - predicted4d
+        - confidence
+        - signal
+        - asP
+        - kopP
+        - kepalaP
+        - ekorP
+        - bbfs
