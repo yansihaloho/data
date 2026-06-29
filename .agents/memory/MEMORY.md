@@ -1,0 +1,1 @@
+- [GitHub Push Config](github-push.md) — repo dan token untuk push ke GitHub saat diminta user
